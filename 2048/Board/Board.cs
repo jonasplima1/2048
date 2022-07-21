@@ -45,7 +45,7 @@ namespace C2048.Board
                     goto WAITUSER;
             }
         }
-        private void PrintBoard(int[,] matrix)
+        private static void PrintBoard(int[,] matrix)
         {
             for (int i = 0; i < 4; i++)
             {
@@ -58,7 +58,7 @@ namespace C2048.Board
         }
 
         //Given a direction, combine the numbers on matrix
-        private void GoDown(ref int[,] board)
+        private static void GoDown(ref int[,] board)
         {
             for (int i = 0; i < 3; i++)
             {
@@ -84,7 +84,7 @@ namespace C2048.Board
                 }
             }
         }
-        private void GoUp(ref int[,] board)
+        private static void GoUp(ref int[,] board)
         {
             for (int i = 0; i < 4; i++)
             {
@@ -114,7 +114,7 @@ namespace C2048.Board
                 }
             }
         }
-        private void GoLeft(ref int[,] board)
+        private static void GoLeft(ref int[,] board)
         {
             for (int i = 0; i < 4; i++)
             {
@@ -144,7 +144,7 @@ namespace C2048.Board
                 }
             }
         }
-        private void GoRight(ref int[,] board)
+        private static void GoRight(ref int[,] board)
         {
             for (int i = 0; i < 4; i++)
             {
@@ -176,8 +176,24 @@ namespace C2048.Board
         }
 
         //Show the results of the game
-        private void ShowScore()
+        private void ShowScore(bool win = false, bool lose = false)
         {
+            if (win)
+            {
+                Console.WriteLine("CONGRATS! You reached 2048!");
+                Console.WriteLine("SCORE: " + Score);
+            }
+            else if (lose)
+            {
+                Console.WriteLine("Well.. Looks like you can't reach 2048 right now. Maybe try again? Press HOME to exit.");
+                Console.WriteLine("SCORE: " + Score);
+            WAIT:
+                if (Console.ReadKey().Key == ConsoleKey.Home)
+                {
+                    Environment.Exit(0);
+                }
+                else goto WAIT;
+            }
             Console.WriteLine();
             Console.WriteLine("SCORE: " + Score);
         }
@@ -185,12 +201,17 @@ namespace C2048.Board
         //Given a matrix, generate a new number in empty block | 90% chance to spawn 2 and 10% 4
         private int[,] GenerateNewBlock(ref int[,] matrix)
         {
+            //Check if player already won
+            if (CheckWin(ref matrix))
+            {
+                ShowScore(true);
+            }
             //Generate list of empty positions
             var emptyBlocks = GetEmptyBlocks(matrix);
             if (emptyBlocks.Count == 0)
             {
                 //Return end game if not able to generate new number
-
+                ShowScore(false, true);
                 return matrix;
             }
             //Select empty coordinate
@@ -202,30 +223,36 @@ namespace C2048.Board
             Score += newNumber;
             //Return updated matrix;
             return matrix;
-            //Generate number using the chances given
-            int GetNumber()
-            {
-                Random random = new Random();
-                const double margin = 90.0 / 100.0;
-                return random.NextDouble() <= margin ? 2 : 4;
-            }
         }
 
-        //Generate a random coordinate for a 4x4 matrix
-        private int[] GetRandomPosition()
+        //Check if the block 2048 exists
+        private static bool CheckWin(ref int[,] matrix)
         {
-            int min = 0;
-            int max = 4;
-            Random random = new Random();
-            int x = random.Next(min, max);
-            int y = random.Next(min, max);
-            return new int[] { x, y };
+            for (int i = 0; i < 4; i++)
+            {
+                for (int j = 0; j < 4; j++)
+                {
+                    if (matrix[i, j] == 2048)
+                    {
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
+
+        //Generate number based on probabilities
+        private static int GetNumber()
+        {
+            Random random = new();
+            const double margin = 90.0 / 100.0;
+            return random.NextDouble() <= margin ? 2 : 4;
         }
 
         //Given a matrix, return list of empty coordinates
-        private List<int[]> GetEmptyBlocks(int[,] matrix)
+        private static List<int[]> GetEmptyBlocks(int[,] matrix)
         {
-            List<int[]> blocks = new List<int[]>();
+            List<int[]> blocks = new();
             for (int i = 0; i < 4; i++)
             {
                 for (int j = 0; j < 4; j++)
@@ -241,9 +268,9 @@ namespace C2048.Board
         }
 
         //Given a list of empty positions, pick one of the coordinates
-        private int[] SelectPosition(List<int[]> emptyBlocks)
+        private static int[] SelectPosition(List<int[]> emptyBlocks)
         {
-            Random random = new Random();
+            Random random = new();
             int x = random.Next(0, emptyBlocks.Count);
             return emptyBlocks[x];
         }
