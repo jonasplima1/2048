@@ -11,6 +11,7 @@ if (output == ConsoleKey.Enter)
     //Calls method to start game;
     Board Board = new Board();
     Board.StartGame();
+    //Board.ShowResult();
 } 
 else if (output == ConsoleKey.Home)
 {

@@ -8,6 +8,7 @@ namespace C2048.Board
 {
     public class Board
     {
+        public int Score { get; set; }
         public void StartGame()
         {
             Console.Clear();
@@ -18,6 +19,7 @@ namespace C2048.Board
         WAITUSER:
             Console.Clear();
             PrintBoard(board);
+            ShowScore();
             //Wait for player input
             switch (Console.ReadKey().Key)
             {
@@ -30,10 +32,12 @@ namespace C2048.Board
                     GenerateNewBlock(ref board);
                     goto WAITUSER;
                 case ConsoleKey.LeftArrow:
-                    GoLeft();
+                    GoLeft(ref board);
+                    GenerateNewBlock(ref board);
                     goto WAITUSER;
                 case ConsoleKey.RightArrow:
-                    GoRight();
+                    GoRight(ref board);
+                    GenerateNewBlock(ref board);
                     goto WAITUSER;
                 case ConsoleKey.Home:
                     return;
@@ -56,7 +60,6 @@ namespace C2048.Board
         //Given a direction, combine the numbers on matrix
         private void GoDown(ref int[,] board)
         {
-            int[] stop = { 0, 0 };
             for (int i = 0; i < 3; i++)
             {
                 var temp = 0;
@@ -83,7 +86,6 @@ namespace C2048.Board
         }
         private void GoUp(ref int[,] board)
         {
-            int[] stop = { 0, 0 };
             for (int i = 0; i < 4; i++)
             {
                 if (i == 0)
@@ -112,15 +114,73 @@ namespace C2048.Board
                 }
             }
         }
-        private void GoLeft()
+        private void GoLeft(ref int[,] board)
         {
-
+            for (int i = 0; i < 4; i++)
+            {
+                var temp = 0;
+                for (int j = 3; j > -1; j--)
+                {
+                    if (j == 0)
+                    {
+                        continue;
+                    }
+                    if (board[i, j] == 0)
+                    {
+                        continue;
+                    }
+                    if (board[i, j - 1] == 0)
+                    {
+                        temp = board[i, j];
+                        board[i, j] = 0;
+                        board[i, j - 1] = temp;
+                    }
+                    if (board[i, j - 1] == board[i, j])
+                    {
+                        temp = board[i, j];
+                        board[i, j] = 0;
+                        board[i, j - 1] += temp;
+                    }
+                }
+            }
         }
-        private void GoRight()
+        private void GoRight(ref int[,] board)
         {
-
+            for (int i = 0; i < 4; i++)
+            {
+                var temp = 0;
+                for (int j = 0; j < 4; j++)
+                {
+                    if (j == 3)
+                    {
+                        continue;
+                    }
+                    if (board[i, j] == 0)
+                    {
+                        continue;
+                    }
+                    if (board[i, j + 1] == 0)
+                    {
+                        temp = board[i, j];
+                        board[i, j] = 0;
+                        board[i, j + 1] = temp;
+                    }
+                    if (board[i, j + 1] == board[i, j])
+                    {
+                        temp = board[i, j];
+                        board[i, j] = 0;
+                        board[i, j + 1] += temp;
+                    }
+                }
+            }
         }
 
+        //Show the results of the game
+        private void ShowScore()
+        {
+            Console.WriteLine();
+            Console.WriteLine("SCORE: " + Score);
+        }
 
         //Given a matrix, generate a new number in empty block | 90% chance to spawn 2 and 10% 4
         private int[,] GenerateNewBlock(ref int[,] matrix)
@@ -129,12 +189,17 @@ namespace C2048.Board
             var emptyBlocks = GetEmptyBlocks(matrix);
             if (emptyBlocks.Count == 0)
             {
+                //Return end game if not able to generate new number
+
                 return matrix;
             }
             //Select empty coordinate
             var coordinate = SelectPosition(emptyBlocks);
             //Generate new number on that position
-            matrix[coordinate[0], coordinate[1]] = GetNumber();
+            int newNumber = GetNumber();
+            matrix[coordinate[0], coordinate[1]] = newNumber;
+            //Add number to score
+            Score += newNumber;
             //Return updated matrix;
             return matrix;
             //Generate number using the chances given
